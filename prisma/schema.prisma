@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  name      String?
+  createdAt DateTime  @default(now())
+  agents    Agent[]
+  contents  Content[]
+}
+
+model Agent {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id])
+  description String?
+  createdAt   DateTime @default(now())
+  tasks       Task[]
+}
+
+model Task {
+  id              String       @id @default(uuid())
+  agentId         String?
+  agent           Agent?       @relation(fields: [agentId], references: [id])
+  type            String
+  status          String       @default("pending")
+  payload         Json
+  idempotencyKey  String?      @unique
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  taskResults     TaskResult[]
+}
+
+// payload: { it contains various fields depending on the content type for example, for articles it may contain title, body, author, source, etc. }
+
+model Content {
+  id        String   @id @default(uuid())
+  title     String?
+  body      String   @db.Text
+  authorId  String?
+  author    User?    @relation(fields: [authorId], references: [id])
+  source    String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+//source :{it can be a URL, book title, journal name, etc. depending on where the content was obtained from}
+//metadata: {it can include fields like language, word count, publication date, tags, etc. depending on the content type}
+
+model TaskResult {
+  id         String   @id @default(uuid())
+  taskId     String
+  task       Task     @relation(fields: [taskId], references: [id])
+  agentId    String?
+  type       String
+  status     String   @default("pending")
+  output     Json?
+  contentId  String?
+  order      Int?
+  createdAt  DateTime @default(now())
+  updateddAt DateTime @updatedAt
+}
