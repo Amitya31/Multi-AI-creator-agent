@@ -35,7 +35,7 @@ export const AGENTS: Record<AgentKey, AgentConfig> = {
 };
 
 export type AgentPipelineStep = {
-    key:AgentKey;
+    key?:AgentKey;
     type:string;
     agentId: string;
     description?: string;

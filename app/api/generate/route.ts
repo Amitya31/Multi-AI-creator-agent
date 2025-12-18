@@ -2,7 +2,8 @@ import { NextResponse,NextRequest } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 import * as z from "zod";
-import { AgentPipelineStep, decideAgentsForPromopt } from "@/lib/planner";
+import { decideAgentsForPromopt } from "@/lib/planner";
+import { AgentPipelineStep } from "@/lib/agents/registry"
 import { agentQueue } from "@/lib/queue";
 
 
@@ -29,12 +30,15 @@ try{
         return NextResponse.json({error:"Prompt is required"},{status:400});
     }
 
-    if(!idempotencyKey){
+    if(idempotencyKey){
         const existing = await prisma.task.findFirst({where: {idempotencyKey}});
-        if(existing) return NextResponse.json({message:"Task already created",taskId:existing.id},{status:200})
+        if(existing) return NextResponse.json({
+            message:"Task already created",taskId:existing.id},
+            {status:200}
+        );
     }
 
-    const pipeline:AgentPipelineStep[] = decideAgentsForPromopt(prompt,options);
+    const pipeline:AgentPipelineStep[] = await decideAgentsForPromopt(prompt,options);
     if(!pipeline.length) return NextResponse.json({error:"No agents selected"},{status:400});
 
     const result = await prisma.$transaction(async (tx)=>{

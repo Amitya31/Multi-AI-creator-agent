@@ -2,7 +2,7 @@ import {Job, Worker} from "bullmq";
 import {agentQueue, connection} from "./lib/queue";
 import {prisma} from "@/lib/prisma";
 import { buildAgentPrompt } from "@/lib/agents/prompts";
-import { runAgentWithGemini } from "@/lib/agents/agentHandler";
+import { runAgent } from "@/lib/agents/agentHandler";
 
 type RunStepPayload = {
     taskId:string,
@@ -11,17 +11,35 @@ type RunStepPayload = {
     pipeline:any[]
 }
 
+function publishTaskEvent(taskId:string,payload:any){
+    const channel = `task-events:${taskId}`;
+    connection.publish(channel,JSON.stringify(payload));
+}
 
 const worker = new Worker(
     "AgentJobs",
     async (job:Job<RunStepPayload>)=>{
         const {taskId,taskResultId,stepIndex, pipeline} = job.data;
-        const tr = await prisma.taskResult.findUnique({where:{id:taskResultId}});
-        if(!tr) throw new Error("TaskResult not found");
+        const lock = await prisma.taskResult.updateMany({
+            where: {
+                id: taskResultId,
+                status: "pending",
+            },
+            data: {
+                status: "processing",
+            },
+        });
 
-        if(tr.status === "completed") return;
-
-        await prisma.taskResult.update({ where: {id:taskResultId}, data: {status:"processing"}})
+            if (lock.count === 0) {
+            return;
+        }
+        publishTaskEvent(taskId, {
+            type: "STEP_UPDATED",
+            taskId,
+            taskResultId,
+            status:"processing",
+            stepIndex
+        });
 
         let input:any = null;
         if(stepIndex===0){
@@ -43,7 +61,9 @@ const worker = new Worker(
             input,
             options:stepSpec.options,
         })
-        const agentOutput = await runAgentWithGemini(
+
+        try{
+            const agentOutput = await runAgent(
             stepSpec.agentId,
             promptForGemini,
             stepSpec.options
@@ -74,6 +94,17 @@ const worker = new Worker(
                 contentId:content.id,
             }
         })
+        }catch(err){
+            await prisma.taskResult.update({
+                where: { id: taskResultId },
+                data: {
+                status: "failed",
+                
+                },
+            });
+              
+            throw err; 
+        }
 
         const nextIndex = stepIndex+1;
         if(pipeline[nextIndex]){
@@ -104,8 +135,52 @@ const worker = new Worker(
                     pipeline,
                 });
             }
-        }else{
-            await prisma.task.update({where:{id:taskId}, data:{status:"completed"}});
+        }else {
+            await prisma.task.update({
+                where: { id: taskId },
+                data: { status: "completed" },
+            });
+
+            const finalResult = await prisma.taskResult.findFirst({
+                where: { taskId },
+                orderBy: { order: "desc" },
+            });
+
+            let text = "";
+            let model = null;
+            let usage = null;
+
+            if (finalResult?.contentId) {
+                const content = await prisma.content.findUnique({
+                where: { id: finalResult.contentId },
+                });
+                text = content?.body ?? "";
+            }
+
+            if (
+                finalResult?.output &&
+                typeof finalResult.output === "object" &&
+                finalResult.output !== null
+            ) {
+                const out = finalResult.output as {
+                text?: string;
+                model?: string;
+                usage?: any;
+                };
+                model = out.model ?? null;
+                usage = out.usage ?? null;
+                if (!text) text = out.text ?? "";
+            }
+
+            publishTaskEvent(taskId, {
+                type: "FINAL_OUTPUT",
+                taskId,
+                content: {
+                text,
+                model,
+                usage,
+                },
+            });
         }
     },
     {connection}
