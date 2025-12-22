@@ -72,7 +72,7 @@ export async function GET(
         stepIndex: (r.order ?? 1) - 1,
         status: r.status,
         replay: true,
-      });
+      }); 
     }
   }
 
