@@ -10,3 +10,6 @@ export function ThemeProvider({
 }: React.ComponentProps<typeof NextThemesProvider>){
     return <NextThemesProvider {...props}>{children}</NextThemesProvider>
 } 
+
+
+            

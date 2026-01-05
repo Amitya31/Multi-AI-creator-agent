@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupAction, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarSeparator } from "./ui/sidebar"
-import { Calendar, ChevronUp, Home, Inbox, Plus, Projector, Search, Settings, User2 } from "lucide-react";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupAction, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, SidebarSeparator } from "./ui/sidebar"
+import { Calendar, ChevronDown, ChevronUp, Home, Inbox, Plus, Projector, Search, Settings, User2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 
 const items = [
     {
@@ -59,6 +60,8 @@ const AppSidebar = ()=>{
                                    <span>{item.title}</span>
                                 </Link>
                             </SidebarMenuButton>
+                            {item.title==="Inbox" && (
+                                <SidebarMenuBadge>24</SidebarMenuBadge> )}
                         </SidebarMenuItem>
                     ))}
                 </SidebarMenu>
@@ -88,9 +91,16 @@ const AppSidebar = ()=>{
                     </SidebarMenuItem>
                 </SidebarGroupContent>
             </SidebarGroup>
+            {/*COLLAPSIBLE */}
+            <Collapsible defaultOpen className="group/collapsible">
             <SidebarGroup>
-                <SidebarGroupLabel>Collapsible</SidebarGroupLabel>
-                
+                <SidebarGroupLabel asChild>
+                    <CollapsibleTrigger>
+                      Collapsible Group
+                      <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                    </CollapsibleTrigger>
+                </SidebarGroupLabel>
+                <CollapsibleContent>
                 <SidebarGroupContent>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild>
@@ -108,6 +118,34 @@ const AppSidebar = ()=>{
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
+                </SidebarGroupContent>
+                </CollapsibleContent>
+            </SidebarGroup>
+            </Collapsible>
+            {/**Nested Group */}            
+            <SidebarGroup>
+                <SidebarGroupLabel>Nested Items</SidebarGroupLabel>
+                <SidebarGroupContent>
+                    <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                            <Link href="/#">
+                               <Projector />
+                               See All Projects
+                            </Link>
+                        </SidebarMenuButton>
+                        <SidebarMenuSub>
+                            <SidebarMenuSubItem>
+                                <SidebarMenuSubButton asChild>
+                                    <Link href="/#">
+                                      <Plus /> 
+                                      Add Project
+                                    </Link>
+                                </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                        </SidebarMenuSub>
+                    </SidebarMenuItem>
+                    </SidebarMenu>
                 </SidebarGroupContent>
             </SidebarGroup>
         </SidebarContent>

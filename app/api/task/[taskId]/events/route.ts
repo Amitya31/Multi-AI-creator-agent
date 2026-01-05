@@ -44,9 +44,7 @@ export async function GET(
     } catch {}
   };
 
-  /* --------------------------------------------------
-   * 1️⃣ REPLAY FROM DATABASE
-   * -------------------------------------------------- */
+  
 
   const task = await prisma.task.findUnique({
     where: { id: taskId },
