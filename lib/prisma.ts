@@ -6,7 +6,6 @@ const connectionString = process.env.DATABASE_URL!;
 const adapter = new PrismaPg({ connectionString });
 
 declare global {
-  // Ensures the PrismaClient instance is reused across HMR in development
   var prisma: PrismaClient | undefined;
 }
 

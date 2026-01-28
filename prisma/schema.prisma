@@ -14,12 +14,17 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  email     String    @unique
-  name      String?
-  createdAt DateTime  @default(now())
-  agents    Agent[]
-  contents  Content[]
+  id         String    @id @default(uuid())
+  email      String    @unique
+  password   String
+  name       String?
+
+  credits    Int       @default(100000)
+  createdAt  DateTime  @default(now())
+  agents     Agent[]
+  contents   Content[]
+  tasks      Task[]
+  tokenUsage TokenUsage[]
 }
 
 model Agent {
@@ -30,12 +35,16 @@ model Agent {
   description String?
   createdAt   DateTime @default(now())
   tasks       Task[]
+  tokenUsage  TokenUsage[]
 }
 
 model Task {
   id              String       @id @default(uuid())
+  userId          String
+  user            User         @relation(fields: [userId], references: [id])
   agentId         String?
   agent           Agent?       @relation(fields: [agentId], references: [id])
+
   type            String
   status          String       @default("pending")
   payload         Json
@@ -43,7 +52,9 @@ model Task {
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
   taskResults     TaskResult[]
+  tokenUsage      TokenUsage[]
 }
+
 
 // payload: { it contains various fields depending on the content type for example, for articles it may contain title, body, author, source, etc. }
 
@@ -63,15 +74,51 @@ model Content {
 //metadata: {it can include fields like language, word count, publication date, tags, etc. depending on the content type}
 
 model TaskResult {
-  id         String   @id @default(uuid())
-  taskId     String
-  task       Task     @relation(fields: [taskId], references: [id])
-  agentId    String?
-  type       String
-  status     String   @default("pending")
-  output     Json?
-  contentId  String?
-  order      Int?
-  createdAt  DateTime @default(now())
-  updateddAt DateTime @updatedAt
+  id                String   @id @default(uuid())
+  taskId            String
+  task              Task     @relation(fields: [taskId], references: [id])
+  agentId           String?
+  type              String
+  status            String   @default("pending")
+  output            Json?
+  contentId         String?
+  order             Int? 
+
+  model             String?
+  promptTokens      Int?
+  completionTokens  Int?
+  totalTokens       Int?
+  createdAt         DateTime @default(now())
+  updateddAt        DateTime @updatedAt
+  errorMessage      String?
+  tokenUsage        TokenUsage[]
+}
+
+model TokenUsage {
+  id               String    @id @default(uuid())
+
+  userId           String
+  user             User?    @relation(fields: [userId], references: [id])
+
+  taskId           String?
+  task             Task?   @relation(fields: [taskId],references: [id])
+
+  taskResultId     String?
+  taskResult       TaskResult?  @relation(fields: [taskResultId],references: [id])
+
+  agentId          String?
+  agent            Agent?   @relation(fields: [agentId],references: [id])
+
+  provider         String
+  model            String
+
+  promptTokens     Int
+  completionTokens Int
+  totalTokens      Int
+
+  totalUSD         Float?
+  createdAt        DateTime @default(now())
+
+
+
 }

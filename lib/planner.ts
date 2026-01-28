@@ -1,18 +1,19 @@
 // lib/planner.ts
 import { z } from "zod";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { AGENTS, AgentKey, AgentPipelineStep } from "@/lib/agents/registry";
+import { AgentKey, AGENT_LABELS, AGENT_DESCRIPTIONS } from "@/lib/agents/registry";
 
 let genAI: GoogleGenerativeAI | null = null;
 if (process.env.GEMINI_API_KEY) {
   genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 }
 
-// --- Zod schema for Gemini planner output ---
+/* ----------------------------------
+ * Zod schema for Gemini output
+ * ---------------------------------- */
 
 const PlanStepSchema = z.object({
   key: z.enum(["outline", "writer", "seo", "title", "summarizer"]),
-  type: z.string().optional(), // Gemini may or may not fill this
   description: z.string().optional(),
   options: z.record(z.string(), z.any()).optional(),
 });
@@ -21,7 +22,10 @@ const PlanSchema = z.object({
   steps: z.array(PlanStepSchema).min(1).max(8),
 });
 
-// Helper to extract JSON if Gemini adds extra text
+/* ----------------------------------
+ * Helpers
+ * ---------------------------------- */
+
 function extractJsonFromText(text: string): string {
   const firstBrace = text.indexOf("{");
   const lastBrace = text.lastIndexOf("}");
@@ -31,7 +35,10 @@ function extractJsonFromText(text: string): string {
   return text.slice(firstBrace, lastBrace + 1);
 }
 
-// Map AgentKey -> AgentStepType string for prompts
+/* ----------------------------------
+ * AgentKey → StepType mapping
+ * ---------------------------------- */
+
 const STEP_TYPE_BY_KEY: Record<AgentKey, string> = {
   outline: "CREATE_OUTLINE",
   writer: "GENERATE_TEXT",
@@ -40,7 +47,20 @@ const STEP_TYPE_BY_KEY: Record<AgentKey, string> = {
   summarizer: "SUMMARIZE",
 };
 
-// --- Heuristic planner (your current simple planner) ---
+/* ----------------------------------
+ * Types
+ * ---------------------------------- */
+
+export type AgentPipelineStep = {
+  key: AgentKey;
+  type: string;
+  description?: string;
+  options?: Record<string, any>;
+};
+
+/* ----------------------------------
+ * Heuristic planner
+ * ---------------------------------- */
 
 function heuristicPlan(
   prompt: string,
@@ -49,7 +69,6 @@ function heuristicPlan(
   const lower = prompt.toLowerCase();
   const pipeline: AgentPipelineStep[] = [];
 
-  // Outline when structuring/long-form
   if (
     lower.includes("outline") ||
     lower.includes("structure") ||
@@ -57,13 +76,11 @@ function heuristicPlan(
   ) {
     pipeline.push({
       key: "outline",
-      type: "CREATE_OUTLINE",
-      agentId: AGENTS.outline.id,
+      type: STEP_TYPE_BY_KEY.outline,
       options: { levelOfDetail: "high", ...(options ?? {}) },
     });
   }
 
-  // Writer for blog/article/post/essay style prompts
   if (
     lower.includes("blog") ||
     lower.includes("article") ||
@@ -72,55 +89,50 @@ function heuristicPlan(
   ) {
     pipeline.push({
       key: "writer",
-      type: "GENERATE_TEXT",
-      agentId: AGENTS.writer.id,
+      type: STEP_TYPE_BY_KEY.writer,
       options: { tone: "conversational", ...(options ?? {}) },
     });
   }
 
-  // SEO
   if (lower.includes("seo") || lower.includes("rank") || lower.includes("google")) {
     pipeline.push({
       key: "seo",
-      type: "SEO_OPTIMIZE",
-      agentId: AGENTS.seo.id,
+      type: STEP_TYPE_BY_KEY.seo,
       options: { targetLength: "medium", ...(options ?? {}) },
     });
   }
 
-  // Title
   if (lower.includes("title") || lower.includes("headline")) {
     pipeline.push({
       key: "title",
-      type: "GENERATE_TITLE",
-      agentId: AGENTS.title.id,
+      type: STEP_TYPE_BY_KEY.title,
       options: { style: "clickable", ...(options ?? {}) },
     });
   }
 
-  // Summarizer
-  if (lower.includes("summarize") || lower.includes("summary") || lower.includes("tl;dr")) {
+  if (
+    lower.includes("summarize") ||
+    lower.includes("summary") ||
+    lower.includes("tl;dr")
+  ) {
     pipeline.push({
       key: "summarizer",
-      type: "SUMMARIZE",
-      agentId: AGENTS.summarizer.id,
+      type: STEP_TYPE_BY_KEY.summarizer,
       options: { compression: "medium", ...(options ?? {}) },
     });
   }
 
-  // If nothing triggered → default: outline + writer
+  // Default fallback
   if (pipeline.length === 0) {
     pipeline.push(
       {
         key: "outline",
-        type: "CREATE_OUTLINE",
-        agentId: AGENTS.outline.id,
+        type: STEP_TYPE_BY_KEY.outline,
         options: { levelOfDetail: "medium", ...(options ?? {}) },
       },
       {
         key: "writer",
-        type: "GENERATE_TEXT",
-        agentId: AGENTS.writer.id,
+        type: STEP_TYPE_BY_KEY.writer,
         options: { tone: "neutral", ...(options ?? {}) },
       }
     );
@@ -130,24 +142,29 @@ function heuristicPlan(
   return pipeline;
 }
 
-// --- Gemini-based planner with fallback to heuristicPlan ---
+/* ----------------------------------
+ * Gemini-based planner
+ * ---------------------------------- */
 
 export async function decideAgentsForPromopt(
   prompt: string,
   options?: Record<string, any>
 ): Promise<AgentPipelineStep[]> {
-  // If no Gemini key → always heuristic
   if (!genAI) {
     return heuristicPlan(prompt, options);
   }
 
-  const modelName = process.env.GEMINI_PLANNER_MODEL || process.env.GEMINI_MODEL || "gemini-2.0-flash";
+  const modelName =
+    process.env.GEMINI_PLANNER_MODEL ||
+    process.env.GEMINI_MODEL ||
+    "gemini-2.0-flash";
+
   const model = genAI.getGenerativeModel({ model: modelName });
 
-  const agentsDescription = (Object.entries(AGENTS) as [AgentKey, (typeof AGENTS)[AgentKey]][])
+  const agentsDescription = (Object.keys(AGENT_LABELS) as AgentKey[])
     .map(
-      ([key, cfg]) =>
-        `- key: "${key}", id: "${cfg.id}", label: "${cfg.label}", role: ${cfg.description}`
+      (key) =>
+        `- key: "${key}", label: "${AGENT_LABELS[key]}", role: ${AGENT_DESCRIPTIONS[key]}`
     )
     .join("\n");
 
@@ -171,7 +188,6 @@ Respond ONLY with JSON in this TypeScript shape:
 type Plan = {
   steps: {
     key: "outline" | "writer" | "seo" | "title" | "summarizer";
-    type?: string;
     description?: string;
     options?: Record<string, any>;
   }[];
@@ -180,21 +196,12 @@ type Plan = {
 NO extra text. NO markdown. ONLY JSON.
 `.trim();
 
-  const userPrompt =
-    typeof prompt === "string" ? prompt : JSON.stringify(prompt, null, 2);
-
   try {
     const result = await model.generateContent({
       contents: [
         {
           role: "user",
-          parts: [
-            {
-              text:
-                plannerInstruction +
-                `\n\nUser prompt:\n"""${userPrompt}"""\n\nRemember: ONLY return JSON.`,
-            },
-          ],
+          parts: [{ text: `${plannerInstruction}\n\nUser prompt:\n"""${prompt}"""` }],
         },
       ],
       generationConfig: {
@@ -203,15 +210,13 @@ NO extra text. NO markdown. ONLY JSON.
       },
     });
 
-    const response = await result.response;
-    const rawText = response.text();
+    const rawText = result.response.text();
 
     let json: unknown;
     try {
-      const jsonString = extractJsonFromText(rawText);
-      json = JSON.parse(jsonString);
+      json = JSON.parse(extractJsonFromText(rawText));
     } catch (e) {
-      console.error("[planner] Failed to parse JSON from Gemini:", e, rawText);
+      console.error("[planner] JSON parse failed:", e, rawText);
       return heuristicPlan(prompt, options);
     }
 
@@ -221,29 +226,20 @@ NO extra text. NO markdown. ONLY JSON.
       return heuristicPlan(prompt, options);
     }
 
-    const plan = parsed.data;
+    const pipeline: AgentPipelineStep[] = parsed.data.steps.map((step) => ({
+      key: step.key,
+      type: STEP_TYPE_BY_KEY[step.key],
+      description: step.description,
+      options: step.options ?? {},
+    }));
 
-    const pipeline: AgentPipelineStep[] = plan.steps.map((step) => {
-      const cfg = AGENTS[step.key];
-      return {
-        key: step.key,
-        type: STEP_TYPE_BY_KEY[step.key], // map key -> agent step type
-        agentId: cfg.id,
-        description: step.description,
-        options: step.options ?? {},
-      };
-    });
-
-    if (!pipeline.length) {
-      return heuristicPlan(prompt, options);
-    }
-
-    console.log("[planner] input prompt:", prompt);
     console.log("[planner] pipeline (Gemini):", pipeline);
     return pipeline;
   } catch (err: any) {
-    // Handles 429, 404, network, etc.
-    console.error("[planner] Gemini planner failed, falling back to heuristic:", err?.message ?? err);
+    console.error(
+      "[planner] Gemini planner failed, falling back to heuristic:",
+      err?.message ?? err
+    );
     return heuristicPlan(prompt, options);
   }
 }

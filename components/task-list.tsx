@@ -11,7 +11,7 @@ type Props = {
 
 export function TaskList({ tasks, selectedTaskId, onSelect }: Props) {
   return (
-    <div className="w-[320px] border-r bg-background flex flex-col">
+    <div className="w-[320px] border bg-background flex flex-col">
       <div className="p-3 border-b flex justify-between items-center">
         <h2 className="text-sm font-semibold">Tasks</h2>
         <Button size="sm">+ New</Button>

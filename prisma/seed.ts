@@ -23,25 +23,33 @@ async function main() {
     create: {
       email: "admin@example.com",
       name: "Admin User",
+      password: "ADMIN1234"
     },
   });
 
   console.log("👤 User:", user.email);
 
   const agents = [
-    { name: "Outline Agent", description: "Generates outlines", ownerId: user.id },
-    { name: "Writer Agent", description: "Writes articles", ownerId: user.id },
-    { name: "SEO Agent", description: "SEO optimization", ownerId: user.id },
-    { name: "Title Agent", description: "Generates titles", ownerId: user.id },
-    { name: "Summarizer Agent", description: "Summarizes text", ownerId: user.id },
-  ];
+  { name: "outline", description: "Creates structured outlines", ownerId: user.id },
+  { name: "writer", description: "Writes long-form content", ownerId: user.id },
+  { name: "seo", description: "Optimizes content for SEO", ownerId: user.id },
+  { name: "title", description: "Generates titles", ownerId: user.id },
+  { name: "summarizer", description: "Summarizes content", ownerId: user.id },
+];
+
 
   const createdAgents = await Promise.all(
     agents.map((agent) =>
       prisma.agent.upsert({
         where: { name: agent.name },
-        update: {},
-        create: agent,
+        update: {
+          description: agent.description
+        },
+        create: {
+          name:agent.name,
+          description: agent.description,
+          ownerId: user.id
+        }
       })
     )
   );

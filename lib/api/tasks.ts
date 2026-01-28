@@ -1,12 +1,20 @@
-import { Task } from "@/lib/models/task"
+import { Task } from "../models/task";
 
 export async function fetchTasks(): Promise<Task[]> {
-  const res = await fetch("/api/tasks", { cache: "no-store" })
+  const res = await fetch("/api/tasks");
 
   if (!res.ok) {
-    throw new Error("Failed to fetch tasks")
+    throw new Error("Failed to fetch tasks");
   }
 
-  const json = await res.json()
-  return json.data
+  const data = await res.json();
+
+  // 👇 SAFETY GUARD
+  if (!Array.isArray(data)) {
+    console.error("Invalid tasks response:", data);
+    return [];
+  }
+  console.log(data)
+
+  return data;
 }

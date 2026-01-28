@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest } from "next/server";
 import IORedis from "ioredis";
 import { prisma } from "@/lib/prisma";
@@ -8,7 +9,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { taskId: string } }
 ) {
-  const { taskId } = params;
+  const { taskId } = await params;
 
   if (!taskId) {
     return new Response("taskId is required", { status: 400 });

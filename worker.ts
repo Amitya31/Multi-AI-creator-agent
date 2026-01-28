@@ -88,20 +88,47 @@ const worker = new Worker(
                 status:"completed",
                 output:{
                     text:agentOutput.text,
-                    model:agentOutput.model,
-                    usage:agentOutput.usage  ?? null,
                 },
+                model: agentOutput.model,
+
+                promptTokens: agentOutput.usage?.promptTokens ?? null,
+                completionTokens: agentOutput.usage?.completionTokens ?? null,
+                totalTokens: agentOutput.usage?.totalTokens ?? null,
                 contentId:content.id,
             }
         })
+
+        if(agentOutput.usage?.totalTokens){
+            await prisma.task.update({
+                where: {id:taskId},
+                data: {
+                    user: {
+                        update:{
+                            credits: {
+                                decrement:agentOutput.usage.totalTokens,
+                            },
+                        },
+                    },
+                },
+            });
+        }
         }catch(err){
+              const errorMessage =
+                err instanceof Error ? err.message : "Unknown error";
             await prisma.taskResult.update({
                 where: { id: taskResultId },
                 data: {
                 status: "failed",
-                
+                errorMessage,                
                 },
             });
+
+            publishTaskEvent(taskId,{
+                type: "STEP_FAILED",
+                taskId,
+                stepIndex,
+                errorMessage,
+            })
               
             throw err; 
         }
@@ -175,6 +202,7 @@ const worker = new Worker(
             publishTaskEvent(taskId, {
                 type: "FINAL_OUTPUT",
                 taskId,
+
                 content: {
                 text,
                 model,
