@@ -223,5 +223,3 @@ worker.on("failed",(job,err)=>{
 })
 
 console.log("[worker] started")
-//GEMINI_API_KEY="AIzaSyAliSmSVv4kD-gI7TQT2RC5CDeGX3HMgag"
-//GEMINI_MODEL="gemini-2.0-flash"
