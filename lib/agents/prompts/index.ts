@@ -4,7 +4,7 @@ import { buildSEOPrompt } from "./seo";
 import { buildSummarizePrompt } from "./summarize";
 import { buildTitlePrompt } from "./title";
 
-export type AgentStepType = | "CREATE_OUTLINE" |  "GENERATE_TEXT" | "SEO_OPTIMIZE" | "GENERATIVE_TITLE" | "SUMMARIZE";
+export type AgentStepType = | "CREATE_OUTLINE" |  "GENERATE_TEXT" | "SEO_OPTIMIZE" | "GENERATE_TITLE" | "SUMMARIZE";
 
 export type AgentPromptContext = {
     stepType: AgentStepType | string;  

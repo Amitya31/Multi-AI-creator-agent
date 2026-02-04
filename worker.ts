@@ -3,13 +3,14 @@ import {agentQueue, connection} from "./lib/queue";
 import {prisma} from "@/lib/prisma";
 import { buildAgentPrompt } from "@/lib/agents/prompts";
 import { runAgent } from "@/lib/agents/agentHandler";
+import {  ResolvedPipelineStep } from "@/lib/agents/types";
 
 type RunStepPayload = {
-    taskId:string,
-    taskResultId:string,
-    stepIndex:number,
-    pipeline:any[]
-}
+  taskId: string;
+  taskResultId: string;
+  stepIndex: number;
+  pipeline: ResolvedPipelineStep[]; // ✅
+};
 
 function publishTaskEvent(taskId:string,payload:any){
     const channel = `task-events:${taskId}`;
@@ -67,51 +68,37 @@ const worker = new Worker(
             stepSpec.agentId,
             promptForGemini,
             stepSpec.options
-        );
+            );
 
-        const content = await prisma.content.create({
-            data:{
-                body: agentOutput.text,
-                source: "agent",
-                metadata: {
-                    type:stepSpec.type,
-                    agentId:stepSpec.agentId,
-                    model: agentOutput.model,
-                    usage: agentOutput.usage ?? null,
-                },
-            },
-        });                 
-
-        await prisma.taskResult.update({
-            where:{id:taskResultId},
-            data:{
-                status:"completed",
-                output:{
-                    text:agentOutput.text,
-                },
-                model: agentOutput.model,
-
-                promptTokens: agentOutput.usage?.promptTokens ?? null,
-                completionTokens: agentOutput.usage?.completionTokens ?? null,
-                totalTokens: agentOutput.usage?.totalTokens ?? null,
-                contentId:content.id,
-            }
-        })
-
-        if(agentOutput.usage?.totalTokens){
-            await prisma.task.update({
-                where: {id:taskId},
-                data: {
-                    user: {
-                        update:{
-                            credits: {
-                                decrement:agentOutput.usage.totalTokens,
-                            },
-                        },
+            const content = await prisma.content.create({
+                data:{
+                    body: agentOutput.text,
+                    source: "agent",
+                    metadata: {
+                        type:stepSpec.type,
+                        agentId:stepSpec.agentId,
+                        model: agentOutput.model,
+                        usage: agentOutput.usage ?? null,
                     },
                 },
-            });
-        }
+            });                 
+
+            await prisma.taskResult.update({
+                where:{id:taskResultId},
+                data:{
+                    status:"completed",
+                    output:{
+                        text:agentOutput.text,
+                    },
+                    model: agentOutput.model,
+
+                    promptTokens: agentOutput.usage?.promptTokens ?? null,
+                    completionTokens: agentOutput.usage?.completionTokens ?? null,
+                    totalTokens: agentOutput.usage?.totalTokens ?? null,
+                    contentId:content.id,
+                }
+            })
+
         }catch(err){
               const errorMessage =
                 err instanceof Error ? err.message : "Unknown error";
@@ -122,6 +109,12 @@ const worker = new Worker(
                 errorMessage,                
                 },
             });
+
+            await prisma.task.update({
+                where: { id: taskId },
+                data: { status: "failed" },
+            });
+
 
             publishTaskEvent(taskId,{
                 type: "STEP_FAILED",
@@ -199,6 +192,32 @@ const worker = new Worker(
                 if (!text) text = out.text ?? "";
             }
 
+            const usageAgg = await prisma.taskResult.aggregate({
+            where: { taskId },
+            _sum: { totalTokens: true },
+            });
+
+
+            const totalTokensUsed = usageAgg._sum.totalTokens ?? 0;
+
+            const task = await prisma.task.findUnique({ where: { id: taskId } });
+
+            if (!task?.billed && totalTokensUsed > 0) {
+            await prisma.task.update({
+                where: { id: taskId },
+                data: {
+                billed: true,
+                user: {
+                    update: {
+                    credits: {
+                        decrement: totalTokensUsed,
+                    },
+                    },
+                },
+                },
+            });
+            }
+
             publishTaskEvent(taskId, {
                 type: "FINAL_OUTPUT",
                 taskId,
@@ -209,6 +228,7 @@ const worker = new Worker(
                 usage,
                 },
             });
+
         }
     },
     {connection}

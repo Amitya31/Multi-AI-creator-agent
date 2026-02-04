@@ -2,6 +2,8 @@
 import { z } from "zod";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { AgentKey, AGENT_LABELS, AGENT_DESCRIPTIONS } from "@/lib/agents/registry";
+import { AgentPipelineStep, AgentStepType } from "@/lib/agents/types";
+
 
 let genAI: GoogleGenerativeAI | null = null;
 if (process.env.GEMINI_API_KEY) {
@@ -39,7 +41,7 @@ function extractJsonFromText(text: string): string {
  * AgentKey → StepType mapping
  * ---------------------------------- */
 
-const STEP_TYPE_BY_KEY: Record<AgentKey, string> = {
+const STEP_TYPE_BY_KEY: Record<AgentKey, AgentPipelineStep["type"]> = {
   outline: "CREATE_OUTLINE",
   writer: "GENERATE_TEXT",
   seo: "SEO_OPTIMIZE",
@@ -47,16 +49,11 @@ const STEP_TYPE_BY_KEY: Record<AgentKey, string> = {
   summarizer: "SUMMARIZE",
 };
 
+
 /* ----------------------------------
  * Types
  * ---------------------------------- */
 
-export type AgentPipelineStep = {
-  key: AgentKey;
-  type: string;
-  description?: string;
-  options?: Record<string, any>;
-};
 
 /* ----------------------------------
  * Heuristic planner
@@ -169,32 +166,32 @@ export async function decideAgentsForPromopt(
     .join("\n");
 
   const plannerInstruction = `
-You are a planning agent in a multi-agent content system.
+  You are a planning agent in a multi-agent content system.
 
-Available agents:
-${agentsDescription}
+  Available agents:
+  ${agentsDescription}
 
-Your job:
-- Read the user prompt.
-- Decide which agents to run and in what order.
-- You can skip agents that are not needed.
-- For short tasks like "summarize this", you may only use the summarizer.
-- For longer content generation, a typical pipeline is:
-  outline -> writer -> seo -> title
-- For pure SEO optimization you may only use the seo agent.
+  Your job:
+  - Read the user prompt.
+  - Decide which agents to run and in what order.
+  - You can skip agents that are not needed.
+  - For short tasks like "summarize this", you may only use the summarizer.
+  - For longer content generation, a typical pipeline is:
+    outline -> writer -> seo -> title
+  - For pure SEO optimization you may only use the seo agent.
 
-Respond ONLY with JSON in this TypeScript shape:
+  Respond ONLY with JSON in this TypeScript shape:
 
-type Plan = {
-  steps: {
-    key: "outline" | "writer" | "seo" | "title" | "summarizer";
-    description?: string;
-    options?: Record<string, any>;
-  }[];
-};
+  type Plan = {
+    steps: {
+      key: "outline" | "writer" | "seo" | "title" | "summarizer";
+      description?: string;
+      options?: Record<string, any>;
+    }[];
+  };
 
-NO extra text. NO markdown. ONLY JSON.
-`.trim();
+  NO extra text. NO markdown. ONLY JSON.
+  `.trim();
 
   try {
     const result = await model.generateContent({

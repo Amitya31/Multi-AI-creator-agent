@@ -5,7 +5,7 @@ import * as z from "zod";
 import { prisma } from "@/lib/prisma";
 import { decideAgentsForPromopt } from "@/lib/planner";
 import { agentQueue } from "@/lib/queue";
-import { AgentPipelineStep } from "@/lib/planner/types";
+import { AgentPipelineStep } from "@/lib/agents/types";
 import { cookies } from "next/headers";
 import { verifyEdgeToken } from "@/lib/auth/jwt";
 

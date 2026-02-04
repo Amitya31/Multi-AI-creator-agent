@@ -20,7 +20,7 @@ export async function login(email:string, password:string) {
         body: JSON.stringify({email,password}),
         credentials:"include"
     })
-
+    console.log(res)
     return handleResponse(res)
 }
 

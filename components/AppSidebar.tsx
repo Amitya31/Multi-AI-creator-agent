@@ -7,7 +7,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collap
 const items = [
     {
         title:"Home",
-        url:"/",    
+        url:"/dashboard",    
         icon: Home
     },
     {
@@ -27,7 +27,7 @@ const items = [
     },
     {
         title:"Settings",
-        url:"/",
+        url:"/settings",
         icon: Settings
     }
 
@@ -39,7 +39,7 @@ const AppSidebar = ()=>{
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton asChild>
-                        <Link href='/'>
+                        <Link href='/dashboard'>
                           AMIT DEV
                          </Link>
                     </SidebarMenuButton>

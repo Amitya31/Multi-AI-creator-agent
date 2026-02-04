@@ -40,12 +40,12 @@ export default function LoginPage(){
                   value={email}
                   onChange={(e)=>setEmail(e.target.value)}
                 />
-                <div className="flex justify-end">
-                  <button className="absolute flex items-center p-2 text-muted-foreground"><Eye size={20}/></button>
+                <div className="flex justify-end ">
+                  <button  className="absolute flex items-center p-2 text-muted-foreground z-4" onClick={()=>setShowPassword(c=>!c)}><Eye size={20}/></button>
                   <Input 
                   placeholder="password"
                   className="relative"
-                  type={"password"}
+                  type={password?"text":"password"}
                   value={password}
                   onChange={(e)=>setPassword(e.target.value)}
                   

@@ -22,6 +22,8 @@ export async function POST(req:Request){
 
     const token = signToken(user.id)
 
+    console.log(token)
+
     const res = NextResponse.json({
         id: user.id,
         email: user.email,
