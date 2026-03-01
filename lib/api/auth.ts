@@ -9,7 +9,7 @@ async function handleResponse(res:Response){
 
     if(!res.ok) {throw data as ApiError
     }
-
+    console.log(data)
     return data;
 }
 
@@ -20,12 +20,11 @@ export async function login(email:string, password:string) {
         body: JSON.stringify({email,password}),
         credentials:"include"
     })
-    console.log(res)
     return handleResponse(res)
 }
 
 export async function register(email:string,password:string,name?:string) {
-    const res = await fetch("api/auth/login",{
+    const res = await fetch("api/auth/register",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({email,password,name}),
@@ -33,4 +32,26 @@ export async function register(email:string,password:string,name?:string) {
     })
 
     return handleResponse(res)
+}
+
+export async function getUser(){
+    const res = await fetch("/api/auth/me",{
+        cache:"no-store",
+        credentials:"include"
+    });
+
+    return handleResponse(res);
+}
+
+export async function logout() {
+  const res = await fetch("/api/auth/logout", {
+    method: "POST",
+    credentials: "include",
+  })
+
+  if (!res.ok) {
+    throw new Error("Logout failed")
+  }
+
+  return true
 }

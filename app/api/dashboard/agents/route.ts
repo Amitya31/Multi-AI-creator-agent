@@ -1,4 +1,4 @@
-// app/api/dashboard/tokens/route.ts
+// app/api/dashboard/agents/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
@@ -30,14 +30,18 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(
-      rows.map((r) => ({
-        agent: r.type,
-        tokens: r._sum.totalTokens ?? 0,
-      }))
-    );
+    const tokenByStep = rows.map((r) => ({
+      stepType: r.type,
+      tokens: r._sum.totalTokens ?? 0,
+    }));
+
+    return NextResponse.json({
+      tokenByStep,
+    });
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      { error: "Failed to load agent analytics" },
+      { status: 500 }
+    );
   }
-}
+}   

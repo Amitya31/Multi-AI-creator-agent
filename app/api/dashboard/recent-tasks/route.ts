@@ -5,7 +5,8 @@ import { cookies } from "next/headers";
 import { verifyEdgeToken } from "@/lib/auth/jwt";
 
 async function getUserId() {
-  const token = cookies().get("token")?.value;
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
   if (!token) throw new Error("Unauthorized");
   const { userId } = await verifyEdgeToken(token);
   return userId;
@@ -22,6 +23,7 @@ export async function GET() {
       include: {
         taskResults: {
           select: { totalTokens: true },
+          orderBy: { order: "asc" },
         },
       },
     });

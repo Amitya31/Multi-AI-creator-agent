@@ -1,16 +1,19 @@
 import { NextResponse } from "next/server"
 import { verifyEdgeToken } from "@/lib/auth/jwt"
 import {prisma} from "@/lib/prisma"
+import { cookies } from "next/headers";
 
 export async function GET(req: Request) {
   
 
-  const cookie = req.headers.get("cookie")
-  const token = cookie?.split("token=")[1]
-  if (!token) return NextResponse.json(null)
-
+ 
   try {
-    const { userId } = verifyEdgeToken(token)
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+    if (!token) throw new Error("Unauthorized");
+    const { userId } = await verifyEdgeToken(token);
+     
+    
     const user = await prisma.user.findUnique({where:{id:userId}})
     return NextResponse.json(user)
   } catch {

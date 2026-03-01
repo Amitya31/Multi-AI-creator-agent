@@ -56,7 +56,7 @@ export async function GET() {
 
         return {
             id: t.id,
-            name: prompt ? prompt.slice(0, 50) : "Task",
+            name: prompt ? prompt : "Task",
             status: t.status,
             updatedAt: t.updatedAt,
             pipeline: t.taskResults.map((r) => r.type),

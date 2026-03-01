@@ -9,6 +9,14 @@ export async function POST(
 ) {
   const taskId = params.taskId;
 
+  const task = await prisma.task.findUnique({
+    where: { id: taskId },
+  });
+
+  if (!task) {
+    return NextResponse.json({ error: "Task not found" }, { status: 404 });
+  }
+
   const failedStep = await prisma.taskResult.findFirst({
     where: { taskId, status: "failed" },
     orderBy: { order: "asc" },
@@ -21,6 +29,21 @@ export async function POST(
     );
   }
 
+  if (failedStep.order == null) {
+    return NextResponse.json(
+      { error: "Invalid task state" },
+      { status: 500 }
+    );
+  }
+
+  const pipeline = (task.payload as any)?.pipeline;
+  if (!pipeline || !Array.isArray(pipeline)) {
+    return NextResponse.json(
+      { error: "Pipeline not found on task" },
+      { status: 500 }
+    );
+  }
+
   // Reset failed + downstream steps
   await prisma.taskResult.updateMany({
     where: {
@@ -30,7 +53,7 @@ export async function POST(
     data: {
       status: "pending",
       errorMessage: null,
-      output: null,
+      output: { set: null },
       contentId: null,
     },
   });
@@ -43,8 +66,8 @@ export async function POST(
   await agentQueue.add("run-step", {
     taskId,
     taskResultId: failedStep.id,
-    stepIndex: (failedStep.order ?? 1) - 1,
-    pipeline: [], 
+    stepIndex: failedStep.order - 1,
+    pipeline,
   });
 
   return NextResponse.json({ message: "Retry started" });
