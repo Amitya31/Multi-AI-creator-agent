@@ -22,11 +22,10 @@ export async function POST(req: Request){
   try {
     const userId =  await getUserId();
     const body = await req.json();
-    console.log("BODY:", body)
 
     
     const {planId} = body;
-    console.log("PLAN ID:", planId)
+
     if(!planId){
       return NextResponse.json({error: "Plan ID is required"}, {status: 400})
     }

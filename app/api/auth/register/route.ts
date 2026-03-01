@@ -11,7 +11,7 @@ export async function POST(req:Request){
         const {email,password,name} = parseBody(registerSchema,body);
         const existing = await prisma.user.findUnique({where:{email}})
 
-        console.log(existing)
+
         if(existing){
             return NextResponse.json(
                 { error: "User already exists" },
@@ -29,7 +29,6 @@ export async function POST(req:Request){
             }
         })
 
-        console.log(user)
 
         const token = signToken(user.id)
     

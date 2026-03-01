@@ -4,9 +4,6 @@ import {prisma} from "@/lib/prisma"
 import { cookies } from "next/headers";
 
 export async function GET(req: Request) {
-  
-
- 
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;

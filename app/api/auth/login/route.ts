@@ -9,9 +9,7 @@ export async function POST(req:Request){
     const body = await req.json();
 
     const {email,password} = parseBody(loginSchema,body);
-    console.log(email)
     const user = await prisma.user.findUnique({where:{email}})
-    console.log(user)
 
     if(!user || !(await bcrypt.compare(password,user.password))){
         return NextResponse.json(
