@@ -1,7 +1,7 @@
 // app/api/generate/route.ts
+export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import * as z from "zod";
-export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { decideAgentsForPromopt } from "@/lib/planner";
 import { agentQueue } from "@/lib/queue";

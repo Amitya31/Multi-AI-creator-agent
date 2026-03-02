@@ -1,9 +1,11 @@
 // app/api/dashboard/agents/route.ts
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { verifyEdgeToken } from "@/lib/auth/jwt";
-export const dynamic = "force-dynamic";
+
 async function getUserId() {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
