@@ -9,12 +9,6 @@ if(!redisuri) {
 }
 
 
-export const connection = new IORedis(redisuri,{
-    tls:{},
-    maxRetriesPerRequest:null,
-    enableReadyCheck:true,
-});
-
 //create a queue for agent tasks
 export const agentQueue = new Queue("AgentJobs",{
     connection: {
