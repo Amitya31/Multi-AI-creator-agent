@@ -1,5 +1,4 @@
 import "dotenv/config";
-import IORedis from "ioredis";
 import {Queue} from "bullmq";
 
 const redisuri = process.env.REDIS_URL;
