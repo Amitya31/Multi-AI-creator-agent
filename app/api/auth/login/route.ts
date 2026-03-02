@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 import { loginSchema } from "@/lib/validators/auth";
 import { parseBody } from "@/lib/validators/parse";
 import { prisma } from "@/lib/prisma"
@@ -18,7 +21,7 @@ export async function POST(req:Request){
         )
     }
 
-    const token = signToken(user.id)
+    const token = await signToken(user.id)
 
     console.log(token)
 

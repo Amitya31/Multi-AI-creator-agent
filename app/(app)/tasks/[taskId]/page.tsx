@@ -1,6 +1,6 @@
 "use client";
 
-import { redirect, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { TaskHeader } from "@/components/task-header";
 import PipelineView from "@/components/pipeline-view";
 import StepOutput from "@/components/step-output";

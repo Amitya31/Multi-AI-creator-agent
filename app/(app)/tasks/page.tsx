@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import NewTaskDialog from "@/components/new-task-dialog";
 import { Plus, ArrowRight, Trash2, Clock, Inbox } from "lucide-react";
 

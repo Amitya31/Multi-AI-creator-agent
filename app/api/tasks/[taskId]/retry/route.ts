@@ -5,9 +5,9 @@ import { agentQueue } from "@/lib/queue";
 
 export async function POST(
   _req: Request,
-  { params }: { params: { taskId: string } }
+  { params }: { params: Promise<{ taskId: string }> }
 ) {
-  const taskId = params.taskId;
+  const {taskId} = await params;
 
   const task = await prisma.task.findUnique({
     where: { id: taskId },

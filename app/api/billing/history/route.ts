@@ -1,7 +1,11 @@
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { cookies } from "next/headers"
-import { verifyEdgeToken } from "@/lib/auth/jwt"
+import { verifyEdgeToken } from "@/lib/auth/jwt" 
+
 
 async function getUserId() {
   const cookieStore = await cookies()

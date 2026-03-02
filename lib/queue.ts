@@ -17,7 +17,9 @@ export const connection = new IORedis(redisuri,{
 
 //create a queue for agent tasks
 export const agentQueue = new Queue("AgentJobs",{
-    connection,
+    connection: {
+    url: process.env.REDIS_URL,
+  },
     defaultJobOptions:{
         attempts:3,
         backoff:{

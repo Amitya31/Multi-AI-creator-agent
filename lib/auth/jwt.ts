@@ -1,24 +1,13 @@
-import jwt from "jsonwebtoken";
-import { jwtVerify } from "jose";
-
-const JWT_SECRET = process.env.JWT_SECRET;
-
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET is not defined");
-}
-
-export const signToken = (userId: string) => {
-  return jwt.sign(
-    { userId },                 // ✅ object payload
-    JWT_SECRET,
-    {
-      expiresIn: "7d",
-      algorithm: "HS256",
-    }
-  );
-};
+import { SignJWT, jwtVerify } from "jose";
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+
+export async function signToken(userId: string) {
+  return await new SignJWT({ userId })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("7d")
+    .sign(secret);
+}
 
 export async function verifyEdgeToken(token: string) {
   const { payload } = await jwtVerify(token, secret);

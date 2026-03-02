@@ -35,13 +35,9 @@ import OverviewCards from "@/components/dashboard/OverviewCards"
 import AgentUsageBar from "@/components/dashboard/AgentUsageBar"
 import TokenAreaChart from "@/components/dashboard/TokenAreaChart"
 import RecentTasks from "@/components/dashboard/RecentTasks"
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
-  if (!token) redirect('/login');
+ 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
       {/* Page header */}

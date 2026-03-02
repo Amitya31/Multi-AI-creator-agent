@@ -231,7 +231,7 @@ const worker = new Worker(
 
         }
     },
-    {connection}
+    {connection:{url:process.env.REDIS_URL}}
 );
 
 worker.on("completed",(job)=>{

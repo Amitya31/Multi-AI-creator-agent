@@ -67,53 +67,53 @@
 //     console.log("🔌 Disconnected");
 //   });
 
-import "dotenv/config";
-import { PrismaClient } from "../lib/generated/prisma";
-import { PrismaPg } from "@prisma/adapter-pg";
+// import "dotenv/config";
+// import { PrismaClient } from "../lib/generated/prisma";
+// import { PrismaPg } from "@prisma/adapter-pg";
 
-if (!process.env.DATABASE_URL) {
-  console.error("❌ DATABASE_URL not set");
-  process.exit(1);
-}
+// if (!process.env.DATABASE_URL) {
+//   console.error("❌ DATABASE_URL not set");
+//   process.exit(1);
+// }
 
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL,
-});
+// const adapter = new PrismaPg({
+//   connectionString: process.env.DATABASE_URL,
+// });
 
-const prisma = new PrismaClient({ adapter });
+// const prisma = new PrismaClient({ adapter });
 
-async function main() {
-  console.log("🌱 Seeding pricing plans...");
+// async function main() {
+//   console.log("🌱 Seeding pricing plans...");
 
-  await prisma.pricingPlan.createMany({
-    data: [
-      {
-        name: "Starter",
-        priceUSD: 1000, // $10
-        credits: 10000,
-      },
-      {
-        name: "Pro",
-        priceUSD: 4000, // $40
-        credits: 50000,
-      },
-      {
-        name: "Growth",
-        priceUSD: 10000, // $100
-        credits: 150000,
-      },
-    ],
-    skipDuplicates: true, // 🔥 important
-  });
+//   await prisma.pricingPlan.createMany({
+//     data: [
+//       {
+//         name: "Starter",
+//         priceUSD: 1000, // $10
+//         credits: 10000,
+//       },
+//       {
+//         name: "Pro",
+//         priceUSD: 4000, // $40
+//         credits: 50000,
+//       },
+//       {
+//         name: "Growth",
+//         priceUSD: 10000, // $100
+//         credits: 150000,
+//       },
+//     ],
+//     skipDuplicates: true, // 🔥 important
+//   });
 
-  console.log("✅ Pricing plans seeded");
-}
+//   console.log("✅ Pricing plans seeded");
+// }
 
-main()
-  .catch((e) => {
-    console.error("❌ Seed failed:", e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+// main()
+//   .catch((e) => {
+//     console.error("❌ Seed failed:", e);
+//     process.exit(1);
+//   })
+//   .finally(async () => {
+//     await prisma.$disconnect();
+//   });

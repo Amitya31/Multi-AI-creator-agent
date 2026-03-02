@@ -8,9 +8,17 @@ async function main() {
         {type:"GENERATE_TEXT",agentId:"agent_writer_v1", tone:"friendly"},
     ];
 
+    
     const result = await prisma.$transaction(async (tx)=>{
+        const user = await tx.user.findFirst()
+
+        if (!user) {
+            throw new Error("No user found in database")
+        }
+
         const task = await tx.task.create({
             data :{
+                userId:user.id,
                 type: "MULTI_AGENT_PIPELINE",
                 payload: {prompt:"Write a shor paragraph about multi-agent sysytems"},
                 status:"pending",

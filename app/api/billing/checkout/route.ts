@@ -3,7 +3,8 @@ import {cookies} from "next/headers";
 import {prisma} from "@/lib/prisma";
 import Stripe from "stripe";
 import {NextResponse} from "next/server";
-
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 async function getUserId() {
