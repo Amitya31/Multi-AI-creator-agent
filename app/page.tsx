@@ -161,7 +161,6 @@ const terminalRows = [
   { tag: "Summary", tagClass: "bg-orange-500/20 text-orange-400", text: "Condensing article into 2-sentence abstract...", live: false },
 ];
 
-// ── PAGE ──────────────────────────────────────────────────────────────────────
 
 export default function LandingPage() {
   const { theme,setTheme } = useTheme()
@@ -203,13 +202,11 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* ── HERO ── */}
       <section className="min-h-screen flex items-center justify-center text-center px-[5vw] pt-28 pb-16 bg-muted/30 relative overflow-hidden">
         {/* ambient glow — uses primary color so it adapts to theme */}
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_700px_500px_at_60%_20%,hsl(var(--primary)/0.08),transparent)]" />
 
         <div className="relative max-w-3xl mx-auto">
-          {/* badge */}
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-xs font-semibold tracking-widest uppercase px-4 py-1.5 rounded-full mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />
             Multi-Agent AI Content Studio
@@ -226,7 +223,7 @@ export default function LandingPage() {
           </p>
 
           <div className="flex items-center justify-center gap-4 flex-wrap">
-            <Link href="/sign-up" className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl text-sm font-medium shadow-lg hover:-translate-y-0.5 hover:shadow-xl transition-all">
+            <Link href="/register" className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl text-sm font-medium shadow-lg hover:-translate-y-0.5 hover:shadow-xl transition-all">
               Start for Free <ArrowRight className="w-4 h-4" />
             </Link>
             <Link href="#how" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -234,8 +231,6 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          {/* ── TERMINAL MOCKUP ── */}
-          {/* Terminal always stays dark — it's a code/CLI element, not a content surface */}
           <div className="mt-14 rounded-2xl overflow-hidden shadow-2xl text-left ring-1 ring-border">
             <div className="bg-zinc-800 px-5 py-3 flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-full bg-red-400" />
@@ -274,7 +269,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── LOGOS STRIP ── */}
       <div className="px-[5vw] py-6 border-b border-border text-center">
         <p className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground/40 mb-4">
           Used by creators publishing on
@@ -286,7 +280,6 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* ── HOW IT WORKS ── */}
       <section id="how" className="px-[5vw] py-24 bg-background">
         <div className="text-center mb-16">
           <p className="text-[10px] font-semibold tracking-widest uppercase text-primary mb-3">How it works</p>
@@ -317,7 +310,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── AGENTS ── */}
       <section id="agents" className="px-[5vw] py-24 bg-muted/30">
         <div className="mb-14">
           <p className="text-[10px] font-semibold tracking-widest uppercase text-primary mb-3">The Agents</p>
@@ -354,7 +346,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── PRICING ── */}
       <section id="pricing" className="px-[5vw] py-24 bg-background">
         <div className="text-center mb-6">
           <p className="text-[10px] font-semibold tracking-widest uppercase text-primary mb-3">Pricing</p>
@@ -485,7 +476,7 @@ export default function LandingPage() {
           Join creators who ship more content, rank higher, and spend less time staring at blank pages.
         </p>
         <Link
-          href="/sign-up"
+          href="/register"
           className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-xl text-sm font-medium shadow-lg hover:-translate-y-0.5 hover:shadow-primary/30 hover:shadow-xl transition-all"
         >
           Start for Free <ArrowRight className="w-4 h-4" />
